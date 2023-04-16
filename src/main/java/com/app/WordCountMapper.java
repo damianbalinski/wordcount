@@ -1,4 +1,4 @@
-package edu.ucr.cs.merlin;
+package com.app;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;

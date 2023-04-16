@@ -40,7 +40,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>edu.ucr.cs.merlin.WordCount</mainClass>
+                            <mainClass>com.app.WordCount</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
