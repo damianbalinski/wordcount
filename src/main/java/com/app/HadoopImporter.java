@@ -19,7 +19,6 @@ import static java.text.MessageFormat.format;
 @Slf4j
 public class HadoopImporter {
 	public static void main(String[] args) {
-		String log4jConfPath = "src/main/resources/aplication.properties";
 		if (args.length != 5) {
 			System.out.println("Invalid usage, try importer <zipDirectory> <fileDirectory> <hadoopDirectory> <fileName> <fileUrl>");
 		}
@@ -37,7 +36,6 @@ public class HadoopImporter {
 		String fileUrl = args[4];
 		String zipFileName = "archive.zip";
 
-		PropertyConfigurator.configure(log4jConfPath);
 		try {
 
 
@@ -75,10 +73,14 @@ public class HadoopImporter {
 		// hadoop fs -put ./book_levels.csv /user/hduser/input
 		Instant start = Instant.now();
 		String filePath = fileDirectory + fileName;
-		String command = format("cmd.exe /c hadoop fs -put {0} {1}", filePath, hadoopDirectory);
-		Process process = Runtime.getRuntime().exec(command);
-		int exitCode = process.waitFor();
-		log.info("Hadoop command exitCode = {}", exitCode);
+
+		String cmdCreateDir = format("cmd.exe /c hadoop fs -mkdir -p {0}", hadoopDirectory);
+		int createDirExitCode = Runtime.getRuntime().exec(cmdCreateDir).waitFor();
+		log.info("Hadoop create directory exitCode = {}", createDirExitCode);
+
+		String cmdPutFile = format("cmd.exe /c hadoop fs -put {0} {1}", filePath, hadoopDirectory);
+		int putFileExitCode = Runtime.getRuntime().exec(cmdPutFile).waitFor();
+		log.info("Hadoop put file exitCode = {}", putFileExitCode);
 
 		Instant end = Instant.now();
 		return Duration.between(start, end);
