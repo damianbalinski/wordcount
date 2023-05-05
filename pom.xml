@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>edu.ucr.cs.merlin</groupId>
-    <artifactId>importer</artifactId>
+    <artifactId>alcohol-map-reduce</artifactId>
     <version>1.0.0</version>
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -43,6 +43,12 @@
             <version>1.18.26</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -59,7 +65,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.app.HadoopImporter</mainClass>
+                            <mainClass>com.app.mapreduce.alcohol.Alcohol</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
