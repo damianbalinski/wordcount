@@ -10,18 +10,18 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.util.UUID;
+
 @Slf4j
-public class Alcohol
-{
-    public static void main(String[] args) throws Exception
-    {
+public class Alcohol {
+
+    public static void main(String[] args) throws Exception {
         String log4jConfPath = "src/main/resources/application.properties";
         PropertyConfigurator.configure(log4jConfPath);
 
         Configuration conf = new Configuration();
         String[] pathArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (pathArgs.length < 2)
-        {
+        if (pathArgs.length < 2) {
             System.err.println("Usage: alcohol-map-reduce <input-path> [...] <output-path>");
             System.exit(2);
         }
@@ -32,11 +32,11 @@ public class Alcohol
         wcJob.setReducerClass(AlcoholReducer.class);
         wcJob.setOutputKeyClass(Text.class);
         wcJob.setOutputValueClass(Text.class);
-        for (int i = 0; i < pathArgs.length - 1; ++i)
-        {
+        for (int i = 0; i < pathArgs.length - 1; ++i) {
             FileInputFormat.addInputPath(wcJob, new Path(pathArgs[i]));
         }
-        FileOutputFormat.setOutputPath(wcJob, new Path(pathArgs[pathArgs.length - 1]));
+        FileOutputFormat.setOutputPath(wcJob, new Path(pathArgs[pathArgs.length - 1] + UUID.randomUUID()));
         System.exit(wcJob.waitForCompletion(true) ? 0 : 1);
     }
+
 }
