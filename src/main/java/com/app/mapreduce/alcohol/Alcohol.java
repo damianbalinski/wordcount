@@ -1,6 +1,6 @@
 package com.app.mapreduce.alcohol;
 
-import lombok.extern.slf4j.Slf4j;
+import com.app.mapreduce.lrc.LrcJob;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -10,14 +10,14 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.log4j.PropertyConfigurator;
 
+import java.io.InputStream;
 import java.util.UUID;
 
-@Slf4j
 public class Alcohol {
 
     public static void main(String[] args) throws Exception {
-        String log4jConfPath = "src/main/resources/application.properties";
-        PropertyConfigurator.configure(log4jConfPath);
+        InputStream configFileStream = LrcJob.class.getResourceAsStream("/application.properties");
+        PropertyConfigurator.configure(configFileStream);
 
         Configuration conf = new Configuration();
         String[] pathArgs = new GenericOptionsParser(conf, args).getRemainingArgs();

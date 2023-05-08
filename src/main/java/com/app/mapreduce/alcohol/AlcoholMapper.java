@@ -1,13 +1,15 @@
 package com.app.mapreduce.alcohol;
 
+import com.app.mapreduce.lrc.LrcJob;
 import com.google.common.base.Splitter;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +17,6 @@ import java.util.regex.Pattern;
 
 class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
 	private final static Splitter CSV_SPLITTER = Splitter.on(Pattern.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)"));
-	private final static String PERCENTAGE_FILE_NAME = "src/main/resources/percentage.csv";
 	private final static Map<String, Integer> PERCENTAGE = importPercentage();
 
 	public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
@@ -56,14 +57,15 @@ class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
 
 	private static Map<String, Integer> importPercentage() {
 		Map<String, Integer> percentage = new HashMap<>();
-		try (BufferedReader br = new BufferedReader(new FileReader(PERCENTAGE_FILE_NAME))) {
+		InputStream percentageFileStream = LrcJob.class.getResourceAsStream("/percentage.csv");
+		try (BufferedReader br = new BufferedReader(new InputStreamReader(percentageFileStream))) {
 			String line;
 			while ((line = br.readLine()) != null) {
 				List<String> tokens = CSV_SPLITTER.splitToList(line);
 				percentage.put(tokens.get(0), Integer.valueOf(tokens.get(1)));
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
 		return percentage;
 	}
