@@ -3,6 +3,7 @@ package com.app.importer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.PropertyConfigurator;
 
 import java.io.BufferedInputStream;
@@ -76,7 +77,7 @@ public class IowaLiquorSalesApiImporter {
 		Process process = Runtime.getRuntime().exec(cmd);
 		InputStream inputStream = process.getInputStream();
 		int replicationExitCode = process.waitFor();
-		String input = new String(inputStream.readAllBytes());
+		String input = new String(IOUtils.toByteArray(inputStream));
 		log.info("Hadoop replication exitCode = {}, output = {}", replicationExitCode, input);
 
 		Instant end = Instant.now();
@@ -105,13 +106,13 @@ public class IowaLiquorSalesApiImporter {
 		Process createDirProcess = Runtime.getRuntime().exec(cmdCreateDir);
 		InputStream createDirInput = createDirProcess.getInputStream();
 		int createDirExitCode = createDirProcess.waitFor();
-		log.info("Hadoop create directory exitCode = {}, output = {}", createDirExitCode, new String(createDirInput.readAllBytes()));
+		log.info("Hadoop create directory exitCode = {}, output = {}", createDirExitCode, new String(IOUtils.toByteArray(createDirInput)));
 
 		String cmdPutFile = format("docker exec master hadoop fs -put {0} {1}", filePath, hadoopDirectory);
 		Process putFileProcess = Runtime.getRuntime().exec(cmdPutFile);
 		InputStream putFileInput = putFileProcess.getInputStream();
 		int putFileExitCode = putFileProcess.waitFor();
-		log.info("Hadoop put file exitCode = {}, output = {}", putFileExitCode, new String(putFileInput.readAllBytes()));
+		log.info("Hadoop put file exitCode = {}, output = {}", putFileExitCode, new String(IOUtils.toByteArray(putFileInput)));
 
 		Instant end = Instant.now();
 		return Duration.between(start, end);

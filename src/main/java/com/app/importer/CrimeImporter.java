@@ -1,6 +1,7 @@
 package com.app.importer;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,9 +24,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -113,7 +114,7 @@ public class CrimeImporter {
 		Process process = Runtime.getRuntime().exec(cmd);
 		InputStream inputStream = process.getInputStream();
 		int replicationExitCode = process.waitFor();
-		String input = new String(inputStream.readAllBytes());
+		String input = new String(IOUtils.toByteArray(inputStream));
 		log.info("Hadoop replication exitCode = {}, output = {}", replicationExitCode, input);
 
 		Instant end = Instant.now();
@@ -129,7 +130,7 @@ public class CrimeImporter {
 		Process copyFileProcess = Runtime.getRuntime().exec(cmdCopyFile);
 		InputStream copyFileInput = copyFileProcess.getInputStream();
 		int copyFileExitCode = copyFileProcess.waitFor();
-		log.info("Container copy file exitCode = {}, output = {}", copyFileExitCode, new String(copyFileInput.readAllBytes()));
+		log.info("Container copy file exitCode = {}, output = {}", copyFileExitCode, new String(IOUtils.toByteArray(copyFileInput)));
 
 		Instant end = Instant.now();
 		return Duration.between(start, end);
@@ -144,13 +145,13 @@ public class CrimeImporter {
 		Process createDirProcess = Runtime.getRuntime().exec(cmdCreateDir);
 		InputStream createDirInput = createDirProcess.getInputStream();
 		int createDirExitCode = createDirProcess.waitFor();
-		log.info("Hadoop create directory exitCode = {}, output = {}", createDirExitCode, new String(createDirInput.readAllBytes()));
+		log.info("Hadoop create directory exitCode = {}, output = {}", createDirExitCode, new String(IOUtils.toByteArray(createDirInput)));
 
 		String cmdPutFile = format("docker exec master hadoop fs -put {0} {1}", filePath, hadoopDirectory);
 		Process putFileProcess = Runtime.getRuntime().exec(cmdPutFile);
 		InputStream putFileInput = putFileProcess.getInputStream();
 		int putFileExitCode = putFileProcess.waitFor();
-		log.info("Hadoop put file exitCode = {}, output = {}", putFileExitCode, new String(putFileInput.readAllBytes()));
+		log.info("Hadoop put file exitCode = {}, output = {}", putFileExitCode, new String(IOUtils.toByteArray(putFileInput)));
 
 		Instant end = Instant.now();
 		return Duration.between(start, end);
@@ -160,7 +161,7 @@ public class CrimeImporter {
 		Instant start = Instant.now();
 		ChromeOptions options = new ChromeOptions();
 		options.addArguments("--headless=new");
-		options.setExperimentalOption("prefs", Map.of("download.default_directory", zipDirectory));
+		options.setExperimentalOption("prefs", Collections.singletonMap("download.default_directory", "zipDirectory"));
 		WebDriver driver = new ChromeDriver(options);
 		driver.get(fileUrl);
 		WebElement ciusDownloads = driver.findElement(By.id("ciusDownloads"));
