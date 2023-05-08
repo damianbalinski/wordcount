@@ -56,23 +56,28 @@ public class CrimeImporter {
 			Instant start = Instant.now();
 			log.info(format("Begin process of data acquisition"));
 
-			log.info("Trying to download file, fileUrl = {}", fileUrl);
-			Duration downloadTime = downloadFile(year, fileUrl, downloadDirectory, downloadFileName);
-			log.info("File downloaded successfully, fileName = {}", downloadFileName);
-			log.info("Download time = {} ms", downloadTime.toMillis());
+			if (Integer.parseInt(year) < 2020) {
+				log.info("Trying to converse , fileName = {}", fileName);
+				Duration conversionTime = converseFileBeforeApi(downloadDirectory, format("iowa_{0}.xls", year), fileNameCsv, downloadDirectory);
+				log.info("File conversed successfully, fileName = {}", fileNameCsv);
+				log.info("Conversion time = {} ms", conversionTime.toMillis());
+			} else {
+				log.info("Trying to download file, fileUrl = {}", fileUrl);
+				Duration downloadTime = downloadFile(year, fileUrl, downloadDirectory, downloadFileName);
+				log.info("File downloaded successfully, fileName = {}", downloadFileName);
+				log.info("Download time = {} ms", downloadTime.toMillis());
 
-			log.info("Trying to decompress zip archive, fileName = {}", downloadFileName);
-			Duration unzipTime = unzipFile(downloadDirectory, downloadFileName, fileName, downloadDirectory);
-			Long fileSize = getFileSize(downloadDirectory, fileName);
-			log.info("File decompressed successfully, fileName = {}, fileSize = {} B", fileName, fileSize);
-			log.info("Decompress time = {} ms", unzipTime.toMillis());
+				log.info("Trying to decompress zip archive, fileName = {}", downloadFileName);
+				Duration unzipTime = unzipFile(downloadDirectory, downloadFileName, fileName, downloadDirectory);
+				Long fileSize = getFileSize(downloadDirectory, fileName);
+				log.info("File decompressed successfully, fileName = {}, fileSize = {} B", fileName, fileSize);
+				log.info("Decompress time = {} ms", unzipTime.toMillis());
 
-			log.info("Trying to converse , fileName = {}", fileName);
-//			Duration conversionTime = converseFile(downloadDirectory, fileName, fileNameCsv);
-			// w przypadku konwersji starych plików zakomentować metody downloadFile, unzipFile oraz converseFile
-			Duration conversionTime = converseFileBeforeApi(downloadDirectory, format("iowa_{0}.xls", year), fileNameCsv, downloadDirectory);
-			log.info("File conversed successfully, fileName = {}", fileNameCsv);
-			log.info("Conversion time = {} ms", conversionTime.toMillis());
+				log.info("Trying to converse , fileName = {}", fileName);
+				Duration conversionTime = converseFile(downloadDirectory, fileName, fileNameCsv);
+				log.info("File conversed successfully, fileName = {}", fileNameCsv);
+				log.info("Conversion time = {} ms", conversionTime.toMillis());
+			}
 
 			log.info("Trying to copy file into container");
 			Duration copyTime = copyFileIntoContainer(downloadDirectory, fileNameCsv);
