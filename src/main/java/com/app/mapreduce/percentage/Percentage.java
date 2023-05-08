@@ -24,7 +24,7 @@ public class Percentage {
 			System.err.println("Usage: percentage-map-reduce <input-path> [...] <output-path>");
 			System.exit(2);
 		}
-		Job wcJob = Job.getInstance(conf, "MapReduce WordCount");
+		Job wcJob = Job.getInstance(conf, "MapReduce Percentage");
 		wcJob.setJarByClass(Percentage.class);
 		wcJob.setMapperClass(PercentageMapper.class);
 		wcJob.setCombinerClass(PercentageReducer.class);
