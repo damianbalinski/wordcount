@@ -46,7 +46,7 @@ public class CrimeImporter {
 
 		// absolute path, \\ zamiast / i brak / na końcu, bo inaczej selenium nie pobiera
 		String downloadDirectory = format("{0}\\src\\main\\resources\\crime\\{1}", System.getProperty("user.dir"), year);
-		String hadoopDirectory = "/user/hduser/crime";
+		String hadoopDirectory = "/user/hduser/crime/";
 		String downloadFileName = format("offenses-known-to-le-{0}.zip", year);
 		String fileName = format("Table_8_Offenses_Known_to_Law_Enforcement_by_State_by_City_{0}.xlsx", year);
 		String fileNameCsv = format("Offenses_Known_to_Law_Enforcement_by_State_by_City_{0}.csv", year);
@@ -85,12 +85,12 @@ public class CrimeImporter {
 			log.info("Copy file = {} ms", copyTime.toMillis());
 
 			log.info("Trying to put file into hadoop storage, hadoopDirectory = {}", hadoopDirectory);
-			Duration putTime = putFileIntoHadoop(fileName, hadoopDirectory);
+			Duration putTime = putFileIntoHadoop(fileNameCsv, hadoopDirectory);
 			log.info("Put file into hadoop storage successfully");
 			log.info("Put time = {} ms", putTime.toMillis());
 
 			log.info("Trying to replicate file on hadoop storage");
-			Duration replicationTime = replicateFile(fileName, hadoopDirectory);
+			Duration replicationTime = replicateFile(fileNameCsv, hadoopDirectory);
 			log.info("File replicated successfully");
 			log.info("Replication time = {} ms", replicationTime.toMillis());
 
@@ -105,9 +105,9 @@ public class CrimeImporter {
 		}
 	}
 
-	private static Duration replicateFile(String fileName, String hadoopDirectory) throws Exception {
+	private static Duration replicateFile(String csvFileName, String hadoopDirectory) throws Exception {
 		Instant start = Instant.now();
-		String filePath = hadoopDirectory + fileName;
+		String filePath = hadoopDirectory + csvFileName;
 
 		String cmd = format("docker exec master hdfs dfs -setrep -w 3 {0}", filePath);
 		Process process = Runtime.getRuntime().exec(cmd);
@@ -122,21 +122,23 @@ public class CrimeImporter {
 
 	private static Duration copyFileIntoContainer(String fileDirectory, String fileName) throws Exception {
 		Instant start = Instant.now();
-		String filePath = fileDirectory + "/" + fileName;
+		String filePath = fileDirectory + "\\" + fileName;
 		String dockerPath = format("/tmp/{0}", fileName);
 		String cmdCopyFile = format("docker cp {0} master:{1}", filePath, dockerPath);
 
-		int copyFileExitCode = Runtime.getRuntime().exec(cmdCopyFile).waitFor();
-		log.info("Container copy file exitCode = {}", copyFileExitCode);
+		Process copyFileProcess = Runtime.getRuntime().exec(cmdCopyFile);
+		InputStream copyFileInput = copyFileProcess.getInputStream();
+		int copyFileExitCode = copyFileProcess.waitFor();
+		log.info("Container copy file exitCode = {}, output = {}", copyFileExitCode, new String(copyFileInput.readAllBytes()));
 
 		Instant end = Instant.now();
 		return Duration.between(start, end);
 	}
 
-	private static Duration putFileIntoHadoop(String fileName, String hadoopDirectory) throws Exception {
+	private static Duration putFileIntoHadoop(String csvFileName, String hadoopDirectory) throws Exception {
 		// hadoop fs -put ./book_levels.csv /user/hduser/input
 		Instant start = Instant.now();
-		String filePath = "/tmp/" + fileName;
+		String filePath = "/tmp/" + csvFileName;
 
 		String cmdCreateDir = format("docker exec master hadoop fs -mkdir -p {0}", hadoopDirectory);
 		Process createDirProcess = Runtime.getRuntime().exec(cmdCreateDir);
