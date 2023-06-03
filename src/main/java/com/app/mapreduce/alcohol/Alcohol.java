@@ -3,6 +3,7 @@ package com.app.mapreduce.alcohol;
 import com.app.mapreduce.lrc.LrcJob;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -30,7 +31,7 @@ public class Alcohol {
         wcJob.setMapperClass(AlcoholMapper.class);
         wcJob.setCombinerClass(AlcoholReducer.class);
         wcJob.setReducerClass(AlcoholReducer.class);
-        wcJob.setOutputKeyClass(Text.class);
+        wcJob.setOutputKeyClass(NullWritable.class);
         wcJob.setOutputValueClass(Text.class);
         for (int i = 0; i < pathArgs.length - 1; ++i) {
             FileInputFormat.addInputPath(wcJob, new Path(pathArgs[i]));

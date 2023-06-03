@@ -30,7 +30,7 @@ public class IowaLiquorSalesApiImporter {
 		String endDate = args[1];
 
 		String downloadDirectory = format("{0}/src/main/resources/", System.getProperty("user.dir"));
-		String hadoopDirectory = "/user/hduser/iowa";
+		String hadoopDirectory = "/user/hduser/iowa/";
 		String fileName = format("Iowa_Liquor_Sales_from_{0}_to_{1}.csv", startDate, endDate);
 		String fileUrl = "https://data.iowa.gov/resource/m3tr-qhgy.csv";
 

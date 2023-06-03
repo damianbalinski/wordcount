@@ -59,7 +59,7 @@ public class CrimeImporter {
 
 			if (Integer.parseInt(year) < 2020) {
 				log.info("Trying to converse , fileName = {}", fileName);
-				Duration conversionTime = converseFileBeforeApi(downloadDirectory, format("iowa_{0}.xls", year), fileNameCsv, downloadDirectory);
+				Duration conversionTime = converseFileBeforeApi(year, downloadDirectory, format("iowa_{0}.xls", year), fileNameCsv);
 				log.info("File conversed successfully, fileName = {}", fileNameCsv);
 				log.info("Conversion time = {} ms", conversionTime.toMillis());
 			} else {
@@ -75,7 +75,7 @@ public class CrimeImporter {
 				log.info("Decompress time = {} ms", unzipTime.toMillis());
 
 				log.info("Trying to converse , fileName = {}", fileName);
-				Duration conversionTime = converseFile(downloadDirectory, fileName, fileNameCsv);
+				Duration conversionTime = converseFile(year, downloadDirectory, fileName, fileNameCsv);
 				log.info("File conversed successfully, fileName = {}", fileNameCsv);
 				log.info("Conversion time = {} ms", conversionTime.toMillis());
 			}
@@ -229,13 +229,11 @@ public class CrimeImporter {
 		return file.length();
 	}
 
-	private static Duration converseFile(String downloadDirectory, String fileName, String fileNameCsv) {
+	private static Duration converseFile(String year, String downloadDirectory, String fileName, String fileNameCsv) {
 		Instant start = Instant.now();
 		String filePath = downloadDirectory + "/" + fileName;
 		String filePathCsv = downloadDirectory + "/" + fileNameCsv;
-		try (FileInputStream fileInputStream = new FileInputStream(filePath);
-		     FileWriter fileWriter = new FileWriter(filePathCsv)) {
-			fileWriter.write("City, Population, Violent Crime Total, Murder and nonnegligent manslaughter, Rape, Robbery, Aggravated assault, Property Crime Total, Burglary, Larceny-theft, Motor vehicle theft, Arson\n");
+		try (FileInputStream fileInputStream = new FileInputStream(filePath); FileWriter fileWriter = new FileWriter(filePathCsv)) {
 			Workbook workbook = WorkbookFactory.create(fileInputStream);
 			Sheet sheet = workbook.getSheetAt(0);
 			String state = "";
@@ -249,6 +247,7 @@ public class CrimeImporter {
 				}
 				if (state.equalsIgnoreCase("Iowa")) {
 					StringBuilder sb = new StringBuilder();
+					sb.append(year);
 					while (cellIterator.hasNext()) {
 						Cell cell = cellIterator.next();
 						if (sb.length() > 0) {
@@ -267,20 +266,19 @@ public class CrimeImporter {
 		return Duration.between(start, end);
 	}
 
-	private static Duration converseFileBeforeApi(String downloadDirectory, String fileName, String fileNameCsv, String outputDirectory) {
+	private static Duration converseFileBeforeApi(String year, String downloadDirectory, String fileName, String fileNameCsv) {
 		Instant start = Instant.now();
 		String filePath = downloadDirectory + "/" + fileName;
 		String filePathCsv = downloadDirectory + "/" + fileNameCsv;
-		try (FileInputStream fileInputStream = new FileInputStream(filePath);
-		     FileWriter fileWriter = new FileWriter(filePathCsv)) {
-			fileWriter.write("City, Population, Violent Crime Total, Murder and nonnegligent manslaughter, Rape, Robbery, Aggravated assault, Property Crime Total, Burglary, Larceny-theft, Motor vehicle theft, Arson\n");
+		try (FileInputStream fileInputStream = new FileInputStream(filePath); FileWriter fileWriter = new FileWriter(filePathCsv)) {
 			Workbook workbook = WorkbookFactory.create(fileInputStream);
 			Sheet sheet = workbook.getSheetAt(0);
 			for (Row row : sheet) {
-				if (row.getCell(0).getStringCellValue().equals("") || row.getCell(0).getStringCellValue().equals("City")) {
+				if (row.getCell(0) == null || row.getCell(0).getStringCellValue().equals("") || row.getCell(0).getStringCellValue().equals("City")) {
 					continue;
 				}
 				StringBuilder sb = new StringBuilder();
+				sb.append(year);
 				for (Cell cell : row) {
 					if (sb.length() > 0) {
 						sb.append(",");

@@ -3,6 +3,7 @@ package com.app.mapreduce.alcohol;
 import com.app.mapreduce.lrc.LrcJob;
 import com.google.common.base.Splitter;
 import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
+class AlcoholMapper extends Mapper<LongWritable, Text, NullWritable, Text> {
 	private final static Splitter CSV_SPLITTER = Splitter.on(Pattern.compile(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)"));
 	private final static Map<String, Integer> PERCENTAGE = importPercentage();
 
@@ -27,7 +28,7 @@ class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
 		if (!containsNecessaryFields(tokens)) {
 			return;
 		}
-		context.write(extractKey(tokens), extractValue(tokens));
+		context.write(NullWritable.get(), extractValue(tokens));
 	}
 
 	private Text extractKey(List<String> tokens) {
@@ -35,15 +36,15 @@ class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
 	}
 
 	private Text extractValue(List<String> tokens) {
-		Integer percentage = PERCENTAGE.get(tokens.get(11));
-		Double volumeSold = Double.valueOf(tokens.get(22));
+		Integer percentage = PERCENTAGE.get(tokens.get(11).replace("\"", ""));
+		Double volumeSold = Double.valueOf(tokens.get(22).replace("\"", ""));
 		Double pureAlcohol = volumeSold * percentage;
 		return new Text(String.join(",", new String[]{
-				tokens.get(1),  // date
-				tokens.get(5),  // city
-				tokens.get(21), // price
+				tokens.get(1).replace("\"", ""),  // date
+				tokens.get(5).replace("\"", ""),  // city
+				tokens.get(21).replace("\"", ""), // price
 				String.valueOf(pureAlcohol),
-				tokens.get(3)	// store name
+				tokens.get(3).replace("\"", "")	// store name
 		}));
 	}
 
@@ -52,12 +53,12 @@ class AlcoholMapper extends Mapper<LongWritable, Text, Text, Text> {
 		String volumeSold = tokens.get(22);
 		return volumeSold != null
 				&& categoryName != null
-				&& PERCENTAGE.containsKey(categoryName);
+				&& PERCENTAGE.containsKey(categoryName.replace("\"", ""));
 	}
 
 	private static Map<String, Integer> importPercentage() {
 		Map<String, Integer> percentage = new HashMap<>();
-		InputStream percentageFileStream = LrcJob.class.getResourceAsStream("/percentage.csv");
+		InputStream percentageFileStream = LrcJob.class.getResourceAsStream("/percentageUpper.csv");
 		try (BufferedReader br = new BufferedReader(new InputStreamReader(percentageFileStream))) {
 			String line;
 			while ((line = br.readLine()) != null) {
